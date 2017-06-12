@@ -1,0 +1,65 @@
+     var implictPrefs=true;//implicitPrefs:Boolean,kryo:Boolean,numIterators:Int,rank:Int,lambda:Double
+        var numIterator=20;
+        var rank=5
+        var lamda=0.01
+        
+        if(args!=null&&args.size()!=0){
+            if(args.get("implictPrefs")!=null)
+              implictPrefs=args.get("implictPrefs").asInstanceOf[Boolean]
+            if(args.get("numIterator")!=null)            
+              numIterator=args.get("numIterator").asInstanceOf[Int]
+            if(args.get("rank")!=null)
+              rank=args.get("rank").asInstanceOf[Int]
+            if(args.get("lamda")!=null)
+              lamda=args.get("lamda").asInstanceOf[Double]
+        }
+        val family=input.get(task.ss_code)
+        if(family==null)
+           return null
+        val scan = HbaseServer.buildScan(Array((family, null)), null, null)
+
+        val data = HbaseServer.flatGet(task.input, scan, sc, x => {
+          val ratings = for (cell <- x.rawCells()) yield (Bytes.toString(CellUtil.cloneRow(cell)), Bytes.toString(CellUtil.cloneQualifier(cell)), Bytes.toString(CellUtil.cloneValue(cell)))
+          ratings
+        })
+
+        
+        val ratings = data.map(r => Rating(StringUtils.getNonNegatived(r._1.##(), Integer.MAX_VALUE), StringUtils.getNonNegatived(r._2.##(), Int.MaxValue), 1))
+
+        
+        val user = data.map(r => (StringUtils.getNonNegatived(r._1.##(), Integer.MAX_VALUE), r._1)).distinct().collect().toMap
+        val item = data.map(r => (StringUtils.getNonNegatived(r._2.##(), Integer.MAX_VALUE), r._2)).distinct().collect().toMap
+
+        val recommender = new ALSRecommender[Rating](implictPrefs,numIterator,rank,lamda);
+        recommender.setModel(ratings)
+        recommender.run()
+        
+        println("MSRE:",recommender.computeRMSE( ratings))
+
+        val result = recommender.recommendForUsers(100)
+
+        val jobConf = new JobConf(conf)
+        jobConf.setOutputFormat(classOf[TableOutputFormat])
+        jobConf.set(TableOutputFormat.OUTPUT_TABLE, task.input)
+
+        result.map {
+          raw =>
+            {
+              val id = user.get(raw._1)
+              val sb=new StringBuffer
+              val put = new Put(id.get.getBytes)
+              raw._2.foreach { x =>
+                {
+                  val itemid = item.get(x.product).get
+                  sb.append(itemid).append(":").append(x.rating).append(",")
+
+                }
+              }
+              put.add("inst".getBytes, task.ss_code.getBytes, sb.toString().getBytes)
+              println(put.toJSON(),"\t",sb.toString())
+              (new ImmutableBytesWritable(), put)
+            }
+        }.saveAsHadoopDataset(jobConf)
+      }
+
+    }

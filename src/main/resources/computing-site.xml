@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- 
+      本项目的配置文件，用于设置一些本项目相关的配置和默认参数
+ -->
+<configuration>
+
+	<property>
+		<name>sample.data.number</name>
+		<value>10</value>
+	</property>
+
+	<property>
+		<name>model.save.path</name>
+		<value>/computing/mining/model/</value>
+	</property>
+
+	<property>
+		<name>hbase.default.mapping.file</name>
+		<value>base-hbase-mapping.xml</value>
+		
+	</property>
+
+	<property>
+		<name>imrec.activeMQ.user</name>
+		<value>admin</value>
+	
+	</property>
+	
+	<property>
+		<name>imrec.activeMQ.password</name>
+		<value>password</value>
+	
+	</property>
+	
+	<property>
+		<name>imrec.activeMQ.host</name>
+		<value>work.net</value>
+	
+	</property>
+	
+	<property>
+		<name>imrec.activeMQ.port</name>
+		<value>5673</value>
+	
+	</property>
+	
+	<!--存储路径设置	-->
+	<property>
+		<name>default.model.path</name>
+		<value>computing/mining/model/</value>
+	</property>
+	<property>
+		<name>default.index.path</name>
+		<value>/computing/mining/index</value>
+	</property>
+	
+</configuration>

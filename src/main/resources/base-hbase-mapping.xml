@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<tables>
+	<!--用户行为表和用户信息表，用户的基本信息存入info字段，用户的行为，存入behavior字段 -->
+	<table name="user_message_table" keyClass="java.lang.String">
+
+		<family name="f" maxVersion="1" /> <!-- user message and behavior -->
+		<family name="g" maxVersion="1" /><!-- 用户画像 [tags,ssCode:source,tag:value] -->
+		<family name="rec" maxVersion="1" />
+	</table>
+	<!-- 用户行为表，记录用户的行为信息 -->
+	<table name="user_behavior_table">
+		<family name="f" maxVersion="1"/>
+		<family name="bhv" maxVersion="1"/>
+	</table>
+
+	<!-- 物品信息表，其中properties描述了物品的属性，keywords描述属性的权重，默认为1 -->
+	<table name="item_meta_table" keyClass="java.lang.String">
+
+		<family name="pps" maxVersion="1" /><!-- 物品属性 -->
+		<family name="sim" maxVersion="2" />
+		<family name="his" maxVersion="1" />
+		<family name="kw" maxVersion="1" /><!-- [keyWords,"ssCode","tags..."] -->
+	</table>
+	<!-- 可推荐列表，用来存数哪些是可以用来推荐的送据 -->
+	<table name="result_recommendable_table" keyClass="java.lang.String">
+		<family name="similaryItem" />
+		<family name="similaryUser" />
+		<family name="default" />
+		<family name="hot" />
+	</table>
+	<!-- 临时表，用过可能被删掉，也很容易被覆盖 -->
+	<table name="tmp_data_table" keyClass="java.lang.String">
+		<family name="f" />
+		<family name="rs" />
+	</table>
+	<!-- 物品特征表，将物品的特征在这个表中进行表述，其中 -->
+	<table name="item_feature_table">
+		<family name="f"/>
+		<family name="pps"/>
+		<family name="relate"/>
+	</table>
+	<!-- 用户的评分表 -->
+	<table name="user_item_score_list">
+		<family name="f" />
+		<family name="bhv" />
+	</table>
+	<!-- 为物品推荐物品，主要用在以下几个用途，相似物品等，相关物品 -->
+	<table name="item_item_rec_list" keyClass="java.lang.String">
+		<family name="f" />
+		<family name="rs" />
+	</table>
+	<!-- 为用户推荐物品 -->
+	<table name="user_item_rec_list" keyClass="java.lang.String">
+		<family name="f" />
+		<family name="rs" />
+	</table>
+	<!-- 为用户推荐用户的表 -->
+	<table name="user_user_rec_list" keyClass="java.lang.String">
+
+		<family name="f" />
+		<family name="rs" />
+
+	</table>
+
+	<!-- 为物品推荐用户 -->
+	<table name="item_user_rec_list" keyClass="java.lang.String">
+
+		<family name="f" />
+		<family name="rs" />
+
+	</table>
+	<!-- 基于用户标签，推荐相关物品 -->
+	<table name="tag_item_rec_list" keyClass="java.lang.String">
+
+		<family name="f" />
+		<family name="rs" />
+
+	</table>
+	
+	<!-- 默认推荐列表，当其他推荐不足时，选取此列表作为补充 -->
+	<table name="default_rec_list" keyClass="java.lang.String">
+		<family name="f" />
+		<family name="rs" />
+	</table>
+	
+	 <!-- 将数据转换，用于对数据进行相关统计 -->
+     <table name="feedback" keyClass="java.lang.String">
+     	 <family name="uv"/>
+     	 <family name="pv"/>
+     	 <family name="f"/>
+     </table>
+     
+     <!-- 数据统计结果存放位置，用于最终结果计算 -->
+     <table name="index" keyClass="java.lang.String">
+     		<family name="rs"/>
+     		<family name="f"/>
+      </table>
+      
+      <!-- 日志存储表，用于运行状况和运行日志的信息收集 -->
+      <table name="history" keyClass="java.lang.String">
+      		<family name="log" tiemToLive="31536000"/>
+      		<family name="f"/> 
+      </table>
+      
+      
+</tables>
