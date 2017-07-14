@@ -11,6 +11,9 @@ import org.apache.hadoop.hbase.util.Bytes
 import org.jdom.Document
 import org.jdom.Element
 import org.jdom.input.SAXBuilder
+import org.apache.hadoop.hbase.HBaseConfiguration
+import org.apache.hadoop.hbase.HColumnDescriptor
+import org.apache.hadoop.hbase.HConstants
 
 object FileMappingToHbase {
 
@@ -75,12 +78,14 @@ object FileMappingToHbase {
 
     val admin = new HBaseAdmin(conf)
     try {
-      admin.listNamespaceDescriptors().find { x => x.getName.equals(nameSpace) } match {
-        case None =>
-          admin.createNamespace(NamespaceDescriptor.create(nameSpace).build())
-
-        case Some(_) =>
-      }
+//      val tables = admin.listNamespaceDescriptors()
+//      if (tables != null)
+//        tables.find { x => x.getName.equals(nameSpace) } match {
+//          case None =>
+//            admin.createNamespace(NamespaceDescriptor.create(nameSpace).build())
+//
+//          case Some(_) =>
+//        }
 
       if (!admin.tableExists(name)) {
         desc.setName(name.getBytes)
@@ -167,4 +172,26 @@ object FileMappingToHbase {
   //                
   //           
   //  }
+
+  def main(args: Array[String]): Unit = {
+
+    
+    val conf=HBaseConfiguration.create()
+    println(conf.get("zookeeper.znode.parent"))
+    
+    val desc = new HTableDescriptor
+    desc.setName("item_test_table".getBytes)
+
+    desc.addFamily(new HColumnDescriptor("kw"))
+    desc.addFamily(new HColumnDescriptor("p"))
+    desc.addFamily(new HColumnDescriptor("f"))
+    desc.addFamily(new HColumnDescriptor("meta"))
+    desc.addFamily(new HColumnDescriptor("ts"))
+    desc.addFamily(new HColumnDescriptor("gl"))
+    desc.addFamily(new HColumnDescriptor("s"))
+    desc.addFamily(new HColumnDescriptor("sys"))
+
+    createTable(desc, HBaseConfiguration.create(), "headlines")
+
+  }
 }

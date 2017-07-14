@@ -41,7 +41,10 @@ object NaiveBayes {
     
     val conf=ComputingConfiguration.create()
     conf.set(Computing.COMPUTING_ID, "headlines")
-    conf.set(Computing.COMPUTING_BITCH_ID, "user-analys")
+//    conf.set(Computing.COMPUTING_BITCH_ID, "user-analys")
+    conf.set(Computing.COMPUTING_BITCH_ID, "user-test")
+
+//    conf.set("default.model.path", "file:///home/hadoop/result/model")
     
     val tool=new StringSplit
     tool.setSpark(sc)
@@ -56,22 +59,17 @@ object NaiveBayes {
     
     tool.run
     
-//    val too2=new FeatureSelect
-//    too2.setSpark(sc)
-//    too2.setConf(conf)
-//    too2.setArgs(arg)
-//    too2.run()
-//    
-//    val too3=new ClassifyModelBuilder
-//    too3.setSpark(sc)
-//    too3.setConf(conf)
-//    too3.setArgs(arg)
-//    too3.run()
-   
+    val too2=new FeatureSelect
+    too2.setSpark(sc)
+    too2.setConf(conf)
+    too2.setArgs(arg)
+    too2.run()
     
-    
-    
-    
+    val too3=new ClassifyModelBuilder
+    too3.setSpark(sc)
+    too3.setConf(conf)
+    too3.setArgs(arg)
+    too3.run()
     
   }
   

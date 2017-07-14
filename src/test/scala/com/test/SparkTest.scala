@@ -16,29 +16,23 @@ import scala.io.Source
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.io.BufferedReader
+import com.recommendengine.compute.conf.ComputingConfiguration
+import org.apache.spark.ml.linalg.Vector
+import org.apache.spark.ml.feature.IDFModel
 
 object SparkTest {
 
   def main(args: Array[String]): Unit = {
+//    
+//   
     
     val ss=SparkSession.builder().appName("wordmodel test").master("local").getOrCreate()
+//     
+    val conf=ComputingConfiguration.create()
+    val bsCode="headlines_user-analys"
+     val model=IDFModel.load(conf.get("default.model.path") + "/" + bsCode + "/" + IDFModel.getClass.getSimpleName)
      
-    
-    
-    
-    val model =Word2VecModel.load("file:///home/hadoop/result/word2Vec-content")
-//    
-    val readbuff=new BufferedReader(new InputStreamReader(System.in))
-    var tmp="";
-    while(true){
-      tmp =readbuff.readLine()
-      
-      model.findSynonyms(tmp, 15).show(15)
-      
-    }
-    
-    
-
+     println(model.idf.size)
   }
  
   def NaiveBayesTest() {}

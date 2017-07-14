@@ -26,6 +26,13 @@ import org.apache.spark.ml.feature.StringIndexer
 import org.apache.spark.ml.feature.StringIndexerModel
 import org.apache.spark.ml.feature.IDFModel
 import org.apache.spark.ml.feature.IndexToString
+import org.apache.spark.sql.functions.{udf}
+import org.apache.spark.ml.linalg.SparseVector
+import org.apache.spark.ml.linalg.Vector
+import org.apache.spark.ml.linalg.Vectors
+import org.apache.spark.ml.linalg.BLAS
+import org.apache.spark.ml.linalg.DenseVector
+
 
 class FeatureSelect extends ComputingTool{
   
@@ -79,8 +86,15 @@ class FeatureSelect extends ComputingTool{
 
     val maps=words.select("words").rdd.flatMap { x => x.getAs[Seq[String]]("words").map { y => (y,toHash.indexOf(y)) } }.distinct().collect().toMap
     val tf=hashingTf.transform(words)
-    
-    
+//    val transform =udf {
+//        vec:Vector=>
+//          val sparseV=vec.toSparse
+//          val size=sparseV.indices.size
+//          val values=sparseV.values.map { x => x/size }
+//          new SparseVector(sparseV.size,sparseV.indices,values)
+//      
+//    }
+//    val tf=tf1.withColumn("rowFeatures", transform(tf1("rowFeatures")))
         
     val idf=new IDF().setInputCol("rowFeatures").setOutputCol("features").setMinDocFreq(minDocFreq)
    
@@ -91,16 +105,16 @@ class FeatureSelect extends ComputingTool{
     
     
             
-//    val bsCode=getConf.get(Computing.COMPUTING_ID) + "_"+getConf.get(Computing.COMPUTING_BITCH_ID)
+    val bsCode=getConf.get(Computing.COMPUTING_ID) + "_"+getConf.get(Computing.COMPUTING_BITCH_ID)
 //    
 //    
-//    val idfPath=getConf.get("default.model.path")+"/"+bsCode
+    val idfPath=getConf.get("default.model.path")+"/"+bsCode
 //    
-//    idfModel.write.overwrite().save(idfPath+"/"+IDFModel.getClass.getSimpleName)
+    idfModel.write.overwrite().save(idfPath+"/"+IDFModel.getClass.getSimpleName)
 //    
-//    val stringIndex=new StringIndexer().setInputCol("label").setOutputCol("labelIndex").fit(tfidf)
+    val stringIndex=new StringIndexer().setInputCol("label").setOutputCol("labelIndex").fit(tfidf)
 //    
-//    stringIndex.write.overwrite().save(idfPath+"/"+StringIndexerModel.getClass.getSimpleName)
+    stringIndex.write.overwrite().save(idfPath+"/"+StringIndexerModel.getClass.getSimpleName)
 //    
 ////    println(stringIndex.labels.)
 //    
@@ -108,13 +122,20 @@ class FeatureSelect extends ComputingTool{
 //    
 ////    stringIndex.transform(label).
 //    
-//    val finaltfIdf=stringIndex.transform(tfidf).select("label","labelIndex","features")
+    val finaltfIdf=stringIndex.transform(tfidf).select("label","labelIndex","features")
 //        
 //   
-//    finaltfIdf.createOrReplaceTempView("features")
+    val size=finaltfIdf.select("features").head().getAs[Vector](0).size
+
+    
+  
+    
+    finaltfIdf.createOrReplaceTempView("features")
     
     result
   }
+  
+ 
 
   private def deletePath(path:String,overwrite:Boolean):Boolean={
     val fs=FileSystem.get(getConf)

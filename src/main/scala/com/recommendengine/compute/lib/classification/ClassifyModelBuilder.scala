@@ -49,17 +49,19 @@ class ClassifyModelBuilder extends ComputingTool {
     naivebaye.setLabelCol(LABLE_NAME).setFeaturesCol(FEATURE_ROW)
     
     val model = naivebaye.fit(features)
-    val predict=model.transform(features)
     
-    val acculation=new MulticlassClassificationEvaluator()
-                   .setLabelCol(LABLE_NAME)
-                   .setPredictionCol("prediction")
-                   .setMetricName("accuracy")
-                   
-
-    val accu=acculation.evaluate(predict)
     
-    println("...................................准确率:>>>"+accu);
+//    val predict=model.transform(features)
+//   
+//    val acculation=new MulticlassClassificationEvaluator()
+//                   .setLabelCol(LABLE_NAME)
+//                   .setPredictionCol("prediction")
+//                   .setMetricName("accuracy")
+//                   
+//    
+//    val accu=acculation.evaluate(predict)
+//    
+//    println("...................................准确率:>>>"+accu);
     
     val modelPath=getConf.get("default.model.path")+"/"+ getConf.get(Computing.COMPUTING_ID)+"_"+getConf.get(Computing.COMPUTING_BITCH_ID)
     model.write.overwrite().save(modelPath+"/"+NaiveBayesModel.getClass.getSimpleName)

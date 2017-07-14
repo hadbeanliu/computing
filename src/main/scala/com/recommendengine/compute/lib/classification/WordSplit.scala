@@ -106,18 +106,18 @@ class WordSplit extends ComputingTool {
 
     val length = (Math.log(0x800) / Math.log(dataLength) + 3).toInt
     println("长度:=", length, System.currentTimeMillis() - begin)
-    write[(String, String)](splitText, op => {
-
-      val id = Random.nextString(length) + "_" + ssCode + "_" + "split"
-      val put = new Put(id.getBytes)
-      val family = "rs".getBytes
-      val q = op._1.getBytes
-
-      val v = op._2.getBytes
-      put.add(family, q, v)
-      (new ImmutableBytesWritable, put)
-    })
-    boradCast.unpersist()
+//    write[(String, String)](splitText, op => {
+//
+//      val id = Random.nextString(length) + "_" + ssCode + "_" + "split"
+//      val put = new Put(id.getBytes)
+//      val family = "rs".getBytes
+//      val q = op._1.getBytes
+//
+//      val v = op._2.getBytes
+//      put.add(family, q, v)
+//      (new ImmutableBytesWritable, put)
+//    })
+//    boradCast.unpersist()
     result
   }
 

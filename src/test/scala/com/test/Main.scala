@@ -13,7 +13,10 @@ object Main {
   
   
   def main(args: Array[String]): Unit = {
-    val arr=Array("1","2")
+   
+    val arr=Array(1,2)
+    arr.sum
+    
     
   }
 }

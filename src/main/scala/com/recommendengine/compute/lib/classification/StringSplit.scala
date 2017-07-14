@@ -44,7 +44,8 @@ class StringSplit extends ComputingTool{
     val textCol = if (this.args.get("content.col") != null) this.args.get("content.col").asInstanceOf[String] else "p:t"
 
     val default = if (source == null) input else source
-    val scan = new Scan()
+    val scan = new Scan() 
+    scan.setStartRow("982937380995139".getBytes)
     scan.addColumn(tagCol.split(":")(0).getBytes, tagCol.split(":")(1).getBytes)
     scan.addColumn(textCol.split(":")(0).getBytes, textCol.split(":")(1).getBytes);
     println(source, default, ">>>>>>>>>>>>>>>", args)
@@ -76,7 +77,7 @@ class StringSplit extends ComputingTool{
     
     val toHash=new org.apache.spark.mllib.feature.HashingTF()
     
-    val df=data.map(ar=>(ar._1,TextSplit.process(ar._2).split(","))).toDF("label","setence")
+    val df=data.map(ar=>(ar._1,TextSplit.process(ar._2))).toDF("label","setence")
         
     df.show()
     
@@ -90,28 +91,28 @@ class StringSplit extends ComputingTool{
     val df2=stopWordRemover.transform(df)
     println(df2.count())
     
-    val df3=df2.select("label", "words").rdd.flatMap { x => {
-      val r=x.getAs[Seq[_]]("words")
-      val label =x.getAs[String]("label")
-        for(word<-r)yield ((label,word),1)  
-    } }
+//    val df3=df2.select("label", "words").rdd.flatMap { x => {
+//      val r=x.getAs[Seq[_]]("words")
+//      val label =x.getAs[String]("label")
+//        for(word<-r)yield ((label,word),1)  
+//    } }
 //    
 //     
     
-    df3.reduceByKey(_ + _).map(f=>(f._1._1,(f._1._2,f._2))).groupByKey().map(f=>{
-      
-      val file=new File("file:///home/hadoop/result/words-with-split/"+f._1)
-      val write=new PrintWriter(file)
-      f._2.foreach(x=>write.println(x._1+" "+x._2))
-      write.flush()
-      write.close()
-      f._1
-    }).count
+//    df3.reduceByKey(_ + _).map(f=>(f._1._1,(f._1._2,f._2))).groupByKey().map(f=>{
+//      
+//      val file=new File("/home/hadoop/result/words-with-split/"+f._1)
+//      val write=new PrintWriter(file)
+//      f._2.foreach(x=>write.println(x._1+" "+x._2))
+//      write.flush()
+//      write.close()
+//      f._1
+//    }).count
     
 //    df3.saveAsTextFile("file:///home/hadoop/result/word-with-split")
     
 //    df2.createOrReplaceTempView("splitTxt")
-//    df2.select("label", "words")..createOrReplaceTempView("splitTxt")
+    df2.select("label", "words").createOrReplaceTempView("splitTxt")
     result
   }
 

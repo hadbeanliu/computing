@@ -22,24 +22,37 @@ import scala.collection.mutable.WrappedArray
 import org.lionsoul.jcseg.test.JcsegTest
 import org.lionsoul.jcseg.tokenizer.core.JcsegTaskConfig
 import com.huaban.analysis.jieba.JiebaSegmenter.SegMode
+import org.apache.spark.SparkConf
+import org.apache.spark.sql.SparkSession
+import com.recommendengine.compute.conf.ComputingConfiguration
+import com.recommendengine.compute.metadata.Computing
+import org.apache.spark.ml.classification.NaiveBayesModel
+import org.apache.spark.mllib.feature.HashingTF
+import org.apache.spark.ml.feature.StringIndexerModel
+import org.lionsoul.jcseg.tokenizer.core.DictionaryFactory
+import org.lionsoul.jcseg.tokenizer.core.SegmentFactory
+import com.recommendengine.compute.utils.TextRankKeyWordExtor
+import java.util.HashMap
+import org.apache.spark.ml.linalg.DenseVector
 
 object Test {
 
- 
   def main(args: Array[String]): Unit = {
+
+    val ss=SparkSession.builder().master("local[*]").appName("test").getOrCreate()
     
-     val st=Source.fromFile("/home/hadoop/train/file")
-     val str=new StringBuffer
-     st.getLines().foreach { x => str.append(x) }
-//    val str="今天，";
-//     val str="今日，苹果公司在福州鼓楼区华西北路对一些支持热更新的iOS软件开发者提出了最后通牒，其发布邮件公告称，一些开发者存在“热更新”（即绕过 App Store 审核的更新），因此，苹果要求开发者移除所有相关代码、框架或SDK，限期10天整改，否则将直接下架";
-     val jcseg=new JcsegTest
-//     jcseg.resetMode(JcsegTaskConfig.NLP_MODE)
-//    
-//    jcseg.keywords(str.toString())
-//    jcseg.tokenize(str)
-//    jcseg.sentence(str)
-//    jcseg.keyphrase(str)
-    jcseg.tokenize(str.toString())
+    val sc=ss.sparkContext
+    
+    val data=sc.textFile("file:///home/hadoop/train/lexicon/customize/lex-main.lex").map { x => {
+         val split=x.split("/")
+         if(split.length==4)
+            (split(0),(split(1),1))
+          else ("",("",1))
+      } }
+    
+    data.reduceByKey((x,y)=>(x._1,x._2+y._2)).filter(_._2._2>1).collect().foreach(println)
+  }
+  def tst(arg: Array[_]) {
+    println(arg.length)
   }
 }

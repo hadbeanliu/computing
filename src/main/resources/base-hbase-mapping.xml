@@ -18,10 +18,14 @@
 	<!-- 物品信息表，其中properties描述了物品的属性，keywords描述属性的权重，默认为1 -->
 	<table name="item_meta_table" keyClass="java.lang.String">
 
-		<family name="pps" maxVersion="1" /><!-- 物品属性 -->
-		<family name="sim" maxVersion="2" />
-		<family name="his" maxVersion="1" />
+		<family name="p" maxVersion="1" /><!-- 物品属性 -->
+		<family name="f" maxVersion="2" /> <!-- 物品特征，比较重要的特征，放在这里 -->
 		<family name="kw" maxVersion="1" /><!-- [keyWords,"ssCode","tags..."] -->
+		<family name="meta" maxVersion="2"><!-- 物品的元素属性，主要存储文字的相关来源，归类等属性 -->
+		<family name="ts" maxVersion="2">
+		<family name="gl" maxVersion="2">
+		<family name="s" maxVersion="2">
+		<family name="sys" maxVersion="2">
 	</table>
 	<!-- 可推荐列表，用来存数哪些是可以用来推荐的送据 -->
 	<table name="result_recommendable_table" keyClass="java.lang.String">

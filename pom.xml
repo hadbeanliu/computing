@@ -93,7 +93,7 @@
 		<scala.version>2.11.0</scala.version>
 		<spark.version>2.1.1</spark.version>
 		<spark-scala>2.11</spark-scala>
-		<hbase.version>1.0.0</hbase.version>
+		<hbase.version>1.3.1</hbase.version>
 		<mq.version>0.30</mq.version>
 		<restlet.version>2.3.7</restlet.version>
 	</properties>

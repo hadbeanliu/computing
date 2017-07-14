@@ -48,7 +48,7 @@
 	<!--存储路径设置	-->
 	<property>
 		<name>default.model.path</name>
-		<value>computing/mining/model/</value>
+		<value>/computing/mining/model/</value>
 	</property>
 	<property>
 		<name>default.index.path</name>

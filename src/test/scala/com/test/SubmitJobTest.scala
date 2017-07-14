@@ -20,6 +20,8 @@ import scala.collection.mutable.Seq
 import org.apache.spark.ml.feature.HashingTF
 import org.apache.spark.ml.classification.NaiveBayesModel
 import org.apache.spark.ml.linalg.DenseVector
+import org.apache.spark.ml.linalg.Vector
+import org.apache.spark.ml.linalg.SparseVector
 
 object SubmitJobTest {
 
@@ -29,24 +31,31 @@ object SubmitJobTest {
 
     val ss = SparkSession.builder().appName("simple").master("local[*]").config(sconf).getOrCreate()
     val conf = ComputingConfiguration.create()
-    conf.set(Computing.COMPUTING_ID, "headlines")
-    conf.set(Computing.COMPUTING_BITCH_ID, "user-analys")
-    val stringModel = StringIndexerModel.load(conf.get("default.model.path") + "/" + "headlines_user-analys" + "/" + StringIndexerModel.getClass.getSimpleName)
+    import org.apache.spark.sql.functions.udf
+    val text="日本松下公司推出了一个名为nanoe x的黑科技——可以对衣物进行除臭的衣架"
+        val splitWords=TextSplit.process(text)
+    val wordSize=splitWords.size
+    val data = ss.createDataFrame(Seq((0,splitWords))).toDF("id", "words")
+    
+    val tf = new HashingTF().setInputCol("words").setOutputCol("rowFeatures").transform(data)
+        
+    
+    
+    val func = udf {
+      vec:Vector=>
+         val v=vec.toSparse
+         val size=v.values.count { x => x>0 }
+         val values=v.values.map { x => x/size }
+         println(size)
+         new SparseVector(v.size,v.indices,values)
+    }
+    val withTf=tf.withColumn("rowFeatures",func(tf("rowFeatures")))
 
-    println(stringModel.labels(26))
-    val arr=stringModel.labels.map { x => (x,x) }
-    val df=stringModel.transform(ss.createDataFrame(arr.toSeq).toDF("id","label")).repartition(1)
+    println(tf.select("rowFeatures").take(1).apply(0).getAs[Vector](0).toSparse.values.sum)
     
+    println(withTf.select("rowFeatures").take(1).apply(0).getAs[Vector](0).toSparse.values.sum)
     
-    df.write.json("file:///home/hadoop/result/text-1")
-    
-    df.show()
-    println(stringModel.labels.size)
-    val idx2str=new IndexToString()
-    idx2str.setInputCol("intLabel").setOutputCol("ogLabel").transform(df).show()
-    
-    
-  }
+ }
 
   def naiveTest() {
 
@@ -68,7 +77,7 @@ object SubmitJobTest {
 
     val idfModel = IDFModel.load(conf.get("default.model.path") + "/" + "headlines_user-analys" + "/" + IDFModel.getClass.getSimpleName)
 
-    val data = ss.createDataFrame(Seq((0, TextSplit.process(text).split(",")))).toDF("id", "words")
+    val data = ss.createDataFrame(Seq((0, TextSplit.process(text)))).toDF("id", "words")
 
     val tf = new HashingTF().setInputCol("words").setOutputCol("rowFeatures")
 

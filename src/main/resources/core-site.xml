@@ -20,7 +20,7 @@
 
 	<property>
 		<name>fs.defaultFS</name>
-		<value>hdfs://master:9000</value>
+		<value>hdfs://slave2:9000</value>
 	</property>
 		
 	<property>

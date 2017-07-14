@@ -26,26 +26,26 @@ import org.apache.spark.sql.Dataset
 import org.apache.spark.sql.Row
 import org.apache.spark.ml.feature.StringIndexer
 import org.apache.spark.ml.feature.StringIndexerModel
+import com.recommendengine.compute.utils.HtmlParser
 
 object HbaseTest {
 
   def main(args: Array[String]): Unit = {
-//        val conn=HConnectionManager.createConnection(HBaseConfiguration.create())
-//        
-//        val table=conn.getTable("headlines:item_meta_table".getBytes)
-    
-        val ss=SparkSession.builder().config("master", "local[*]").appName("test").getOrCreate()
-    
-        val data = ss.sparkContext.wholeTextFiles("file:///home/hadoop/result/train")
-        
-//          countBySelect()
-//          HbaseServer.clearTable("headlines:item_meta_table")
+    //        val conn=HConnectionManager.createConnection(HBaseConfiguration.create())
+    //        
+    //        val table=conn.getTable("headlines:item_meta_table".getBytes)
+
+    //        val ss=SparkSession.builder().config("master", "local[*]").appName("test").getOrCreate()
+
+    //        val data = ss.sparkContext.wholeTextFiles("file:///home/hadoop/result/train")
+    countBySelect
+    //          countBySelect()
+    //          HbaseServer.clearTable("headlines:item_meta_table")
     //    
     //    val delete=new Delete("2017011619000064".getBytes)
     ////    delete.deleteFamily("kw".getBytes)
     //    table.delete(delete)
-    
-  
+
   }
 
   def countBySelect() {
@@ -53,7 +53,7 @@ object HbaseTest {
 
     val scan = new Scan
     scan.addColumn("f".getBytes, "lb".getBytes)
- 
+
     val table = conn.getTable("headlines:item_meta_table")
     val rscan = table.getScanner(scan).iterator()
     var i = 0
@@ -67,7 +67,7 @@ object HbaseTest {
       if (map.containsKey(ca))
         map.put(ca, map.get(ca) + 1)
       else map.put(ca, 1)
-      if (ca == "[db:站点]")
+      if (ca == "医疗")
         delete.add(new Delete(rs.getRow))
       i = i + 1
       //      for(cell<-rs.rawCells())
@@ -77,7 +77,7 @@ object HbaseTest {
       val next = kv.next()
       println(next.getKey + ":" + next.getValue)
     }
-    println("the number article be deleted:"+delete.size())
+    println("the number article be deleted:" + delete.size())
     table.delete(delete)
     //    this.putUserMsg()
     //    delete("headlines", conf)
@@ -91,9 +91,55 @@ object HbaseTest {
     //    createTable("headlines:tmp_data_table", null)
 
   }
-  
-  def delete(tableName:String,filter:Result=>Boolean){
-      
+
+  def clearColumnWithRegex() {
+
+    val conn = HConnectionManager.createConnection(HBaseConfiguration.create())
+    val puts = new ArrayList[Put]()
+    val scan = new Scan
+    scan.addColumn("p".getBytes, "cnt".getBytes)
+
+    val table = conn.getTable("headlines:item_meta_table")
+    val rscan = table.getScanner(scan).iterator()
+    var i = 0
+    val delete = new ArrayList[Delete]()
+
+    while (rscan.hasNext()) {
+      val rs = rscan.next()
+      //      delete.add(new Delete(rs.getRow))
+      val ca = new String(rs.getValue("p".getBytes, "cnt".getBytes))
+      if (ca.equals("此页面是否是列表页或首页？未找到合适正文内容。"))
+        delete.add(new Delete(rs.getRow))
+      else {
+        val put = new Put(rs.getRow)
+        put.addColumn("p".getBytes, "cnt".getBytes, HtmlParser.delHTMLTag(ca).getBytes)
+        puts.add(put)
+        if (puts.size() > 500) {
+          println("the number article be updated:" + puts.size())
+          table.put(puts)
+          puts.clear()
+        }
+      }
+      i = i + 1
+      //      for(cell<-rs.rawCells())
+    }
+    println("the number article be deleted:" + delete.size())
+    table.delete(delete)
+    //    this.putUserMsg()
+    //    delete("headlines", conf)
+    //    val table=conn.getTable("headlines:tmp_data_table")
+
+    //    val scan = new Scan()
+    //    scan.addFamily("result".getBytes)
+    //
+    //    val filter = new RowFilter(CompareOp.EQUAL, new SubstringComparator("textClassfy_split"))
+    //    scan.setFilter(filter)
+    //    createTable("headlines:tmp_data_table", null)
+
+  }
+
+  def delete(tableName: String, filter: Result => Boolean) {
+
     val conn = HConnectionManager.createConnection(HBaseConfiguration.create())
 
     val scan = new Scan
@@ -111,12 +157,12 @@ object HbaseTest {
       if (map.containsKey(ca))
         map.put(ca, map.get(ca) + 1)
       else map.put(ca, 1)
-      if (ca != null){
-        i=i+1
+      if (ca != null) {
+        i = i + 1
         delete.add(new Delete(rs.getRow))
-        }
-//      println(new String(rs.getRow) + "--" + new String(rs.getValue("f".getBytes, "lb".getBytes)))
-//      i = i + 1
+      }
+      //      println(new String(rs.getRow) + "--" + new String(rs.getValue("f".getBytes, "lb".getBytes)))
+      //      i = i + 1
       //      for(cell<-rs.rawCells())
     }
     val kv = map.entrySet().iterator()
@@ -137,7 +183,6 @@ object HbaseTest {
     //    scan.setFilter(filter)
     //    createTable("headlines:tmp_data_table", null)
 
-  
   }
 
   def delete(tableName: String) {
@@ -308,4 +353,4 @@ object HbaseTest {
 
 }
 
-case class Article(tag:String,title:String)
+case class Article(tag: String, title: String)

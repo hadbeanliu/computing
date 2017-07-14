@@ -1,22 +1,30 @@
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
-<!-- /** * Copyright 2010 The Apache Software Foundation * * Licensed to 
-	the Apache Software Foundation (ASF) under one * or more contributor license 
-	agreements. See the NOTICE file * distributed with this work for additional 
-	information * regarding copyright ownership. The ASF licenses this file * 
-	to you under the Apache License, Version 2.0 (the * "License"); you may not 
-	use this file except in compliance * with the License. You may obtain a copy 
-	of the License at * * http://www.apache.org/licenses/LICENSE-2.0 * * Unless 
-	required by applicable law or agreed to in writing, software * distributed 
-	under the License is distributed on an "AS IS" BASIS, * WITHOUT WARRANTIES 
-	OR CONDITIONS OF ANY KIND, either express or implied. * See the License for 
-	the specific language governing permissions and * limitations under the License. 
-	*/ -->
+<!--
+/**
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
 <configuration>
 
 	<property>
 		<name>hbase.rootdir</name>
-		<value>hdfs://master:9000/hbase</value><!-- 端口号和ip地址要与hadoop配置参数fs.default.name一致 -->
+		<value>hdfs://slave2:9000/hbase</value><!-- 端口号和ip地址要与hadoop配置参数fs.default.name一致 -->
 		<!--<value>file:///home/hadoop/hbase</value> -->
 	</property>
 
@@ -31,12 +39,12 @@
 	</property>
 	<property>
 		<name>hbase.master</name>
-		<value>master:60000</value>
+		<value>slave2:60000</value>
 	</property>
 
 	<property>
 		<name>hbase.zookeeper.quorum</name>
-		<value>master</value>
+		<value>192.168.16.118</value>
 	</property>
 	<property>
 		<name>hbase.zookeeper.property.clientPort</name>
@@ -46,5 +54,13 @@
 		<name>hbase.hregion.memstore.flush.size</name>
 		<value>134217728</value>
 	</property>
+	<property>
+	  <name>zookeeper.znode.parent</name>
+	  <value>/hbase</value>
+	</property>
 
+ 	<property>
+    		<name>hbase.tmp.dir</name>
+    		<value>/home/hadoop/ds/tmp</value>
+ 	</property>
 </configuration>
