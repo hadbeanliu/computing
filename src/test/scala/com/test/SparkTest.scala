@@ -19,20 +19,20 @@ import java.io.BufferedReader
 import com.recommendengine.compute.conf.ComputingConfiguration
 import org.apache.spark.ml.linalg.Vector
 import org.apache.spark.ml.feature.IDFModel
+import org.apache.spark.ml.regression.LinearRegression
 
 object SparkTest {
 
   def main(args: Array[String]): Unit = {
-//    
-//   
     
-    val ss=SparkSession.builder().appName("wordmodel test").master("local").getOrCreate()
-//     
-    val conf=ComputingConfiguration.create()
-    val bsCode="headlines_user-analys"
-     val model=IDFModel.load(conf.get("default.model.path") + "/" + bsCode + "/" + IDFModel.getClass.getSimpleName)
-     
-     println(model.idf.size)
+     val ss= SparkSession.builder().master("local[*]").appName("test").getOrCreate()
+
+    val data=ss.sparkContext.textFile("file:///home/hadoop/train/wordFreq.txt",1)
+    data.map(x=> {
+      val data = x.split(",")
+      (if(data(0).substring(1).toInt/50==0) 0 else 1, data(1).substring(0, data(1).length - 1).toInt)
+    }
+    ).reduceByKey((x,y)=>x + y).sortBy(_._1).saveAsTextFile("file:///home/hadoop/train/result2.txt")
   }
  
   def NaiveBayesTest() {}

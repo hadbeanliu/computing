@@ -18,6 +18,7 @@ object TimeEffect{
   def main(args:Array[String])={
     println(Math.pow(Math.E, -Math.log(4)))
     println(decay(27,0)(2))
+    println("a")
   }
   
   /**

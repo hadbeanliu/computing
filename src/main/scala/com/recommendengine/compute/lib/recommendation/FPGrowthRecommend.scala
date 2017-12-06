@@ -31,7 +31,6 @@ class FPGrowthRecommend extends ComputingTool with Readable with Writable{
     val scan = HbaseServer.buildScan(Array(("relate", Array(ssCode))), null, null, null)
     var data = HbaseServer.flatGet(table, scan, sc,  result =>
       {
-
         val cell = result.rawCells()(0)
         val v = Bytes.toString(CellUtil.cloneValue(cell)).split(Computing.VALUE_KEY_SPLIT_SIGN)
         for (freq <- v) yield freq.split(Computing.KEY_KEY_SPLIT_SIGN)

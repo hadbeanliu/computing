@@ -19,6 +19,13 @@ object JsonParser {
     }
 
   }
+  
+  def main(args:Array[String]):Unit={
+    val str = s"{name:jack}"
+    println(parserFull(str,"name"))
+    val map =Map[String,Any]("a"->2,("b",2))
+    println(map)
+  }
 
 }
 

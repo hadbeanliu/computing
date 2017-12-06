@@ -1,49 +1,19 @@
 package com.recommendengine.compute.api.resource
 
 import java.net.URLDecoder
-
-import scala.collection.mutable.Map
-
-import org.apache.hadoop.fs.FileSystem
-import org.apache.hadoop.hbase.CellUtil
-import org.apache.hadoop.hbase.client.Get
-import org.apache.hadoop.hbase.client.HConnectionManager
-import org.apache.hadoop.hbase.util.Bytes
+import java.util.HashMap
+import javax.ws.rs._
+import javax.ws.rs.core.MediaType
 
 import com.google.gson.Gson
-import com.recommendengine.compute.api.RecServer
-import com.recommendengine.compute.api.model.WebPage
 import com.recommendengine.compute.conf.ComputingConfiguration
-import com.recommendengine.compute.metadata.Computing
-import com.recommendengine.compute.utils.TextSplit
-
-import javax.ws.rs.GET
-import javax.ws.rs.POST
-import javax.ws.rs.Path
-import javax.ws.rs.Produces
-import javax.ws.rs.QueryParam
-import java.util.StringTokenizer
-import scala.collection.mutable.ArrayBuilder
-import javax.ws.rs.core.MediaType
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import java.io.FileNotFoundException
-import org.apache.spark.sql.SparkSession
-import org.apache.spark.ml.feature.HashingTF
+import com.recommendengine.compute.utils.{NumberFormat, TextRankKeyWordExtor, TextSplit}
 import org.apache.spark.ml.classification.NaiveBayesModel
-import org.apache.spark.ml.feature.IDFModel
-import org.apache.spark.ml.linalg.DenseVector
-import org.apache.spark.ml.feature.StringIndexer
-import org.apache.spark.ml.feature.StringIndexerModel
-import com.recommendengine.compute.utils.TextRankKeyWordExtor
-import java.util.HashMap
-import org.apache.spark.sql.functions.{ udf }
-import org.apache.spark.ml.linalg.Vector
-import org.apache.spark.ml.linalg.SparseVector
-import org.apache.spark.sql.Column
-import com.recommendengine.compute.utils.NumberFormat
-import com.recommendengine.compute.utils.NumberFormat
-import java.util.ArrayList
+import org.apache.spark.ml.feature.{HashingTF, IDFModel, StringIndexerModel}
+import org.apache.spark.ml.linalg.{DenseVector, SparseVector, Vector}
+import org.apache.spark.sql.SparkSession
+
+import scala.collection.mutable.Map
 
 object MiningResource {
 
@@ -123,7 +93,7 @@ class MiningResource extends AbstractResource {
     require(bizCode != null && ssCode != null, s"参数不足或者为空!!=>[biz_code=$bizCode],[ss_code=$ssCode],[model=$modelClass]")
     require(text != null, s"内容不能为空!!=>$text")
 
-    val ss = SparkSession.builder().master("local[*]").getOrCreate()
+    val ss = SparkSession.builder().getOrCreate()
     val bsCode = bizCode + "_" + ssCode
 
     println(bsCode)
@@ -193,50 +163,81 @@ class MiningResource extends AbstractResource {
 
     result.filter(_._2 > 0).sortWith((x, y) => x._2 > y._2).toArray.mkString(",")
   }
-
+  
+  
   @POST
-  @Path("/extractkw")
+  @Path("/getMainKey")
   @Produces(Array(MediaType.TEXT_HTML))
-  def extractKeyWords(text: String, @QueryParam("biz_code") bizCode: String, @QueryParam("ss_code") ssCode: String): String = {
+  def extracts(text: String, @QueryParam("biz_code") bizCode: String, @QueryParam("ss_code") ssCode: String, @QueryParam("hm") hm: Int = 10): String = {
 
     require(text != null, "text cant be null")
     println("comeing here!!!!!!")
     require(bizCode != null && ssCode != null, s"参数不足或者为空!!=>[biz_code=$bizCode],[ss_code=$ssCode]")
     require(text != null, s"内容不能为空!!=>$text")
 
-    val ss = SparkSession.builder().master("local[*]").getOrCreate()
     val bsCode = bizCode + "_" + ssCode
     val conf = MiningResource.conf
     val extractor = new TextRankKeyWordExtor
     if (MiningResource.idfModel.get(bsCode) == None) {
-
+      println("开始加载idfmodel..........."+conf.get("default.model.path") + "/" + bsCode + "/" + IDFModel.getClass.getSimpleName)
       MiningResource.idfModel.put(bsCode, IDFModel.load(conf.get("default.model.path") + "/" + bsCode + "/" + IDFModel.getClass.getSimpleName))
+      println("成功加载  idfmodel !!!")
     }
     val idf = MiningResource.idfModel.get(bsCode).get.asInstanceOf[IDFModel].idf
     val gson=new Gson
     val words = gson.fromJson(text, classOf[Array[String]])
     val textRank = extractor.getKeyWordWithScore(words).filter(_._1.length() > 1).map(f => (f._1, Float.float2double(f._2)))
-    val hashingTf = new org.apache.spark.mllib.feature.HashingTF(262144)
-    val tf = hashingTf.transform(words)
+    val hashingTf = new org.apache.spark.mllib.feature.HashingTF(idf.size)
+//    val tf = hashingTf.transform(words)
 
-    val format = new NumberFormat();
+    val format = new NumberFormat()
     val normailize = (data: Array[(String, Double)]) => {
       val max = data.map(_._2).max
       val min = data.map(_._2).min
       val maxmin = max - min
       data.map(f => (f._1, 10 * (f._2 - min) / maxmin))
     }
-//     val result=new HashMap[String,Weight]
-//    words.distinct.foreach { x =>
-//      {
-//        val index = hashingTf.indexOf(x)
-//        val t = tf(index)
-//        val tfidf = t * idf(index)
-//        result.put(x,Weight(x, t, tfidf))
-//      }
-//    }
+    val withIDF = normailize(textRank.map { w =>
+         {
+           val index = hashingTf.indexOf(w._1)
+           (w._1, w._2 * idf(index))
+          }
+        }).sortWith((x,y)=>x._2>y._2).take(hm).map(f=>(f._1,format.format(f._2)))
+    gson.toJson(withIDF)
+  }
 
+  @POST
+  @Path("/extractkw")
+  @Produces(Array(MediaType.TEXT_HTML))
+  def extractKeyWords(text: String, @QueryParam("biz_code") bizCode: String, @QueryParam("ss_code") ssCode: String, @QueryParam("hm") hm: Int = 10): String = {
 
+    require(text != null, "text cant be null")
+    println("comeing here!!!!!!")
+    require(bizCode != null && ssCode != null, s"参数不足或者为空!!=>[biz_code=$bizCode],[ss_code=$ssCode]")
+    require(text != null, s"内容不能为空!!=>$text")
+
+    val bsCode = bizCode + "_" + ssCode
+    val conf = MiningResource.conf
+    val extractor = new TextRankKeyWordExtor
+    if (MiningResource.idfModel.get(bsCode) == None) {
+      println("开始加载idfmodel..........."+conf.get("default.model.path") + "/" + bsCode + "/" + IDFModel.getClass.getSimpleName)
+      MiningResource.idfModel.put(bsCode, IDFModel.load(conf.get("default.model.path") + "/" + bsCode + "/" + IDFModel.getClass.getSimpleName))
+      println("成功加载  idfmodel !!!")
+    }
+    val idf = MiningResource.idfModel.get(bsCode).get.asInstanceOf[IDFModel].idf
+    val gson=new Gson
+    val words = gson.fromJson(text, classOf[Array[String]])
+    val textRank = extractor.getKeyWordWithScore(words).filter(_._1.length() > 1).map(f => (f._1, Float.float2double(f._2)))
+    val hashingTf = new org.apache.spark.mllib.feature.HashingTF(idf.size)
+//    val tf = hashingTf.transform(words)
+
+    val format = new NumberFormat()
+    val normailize = (data: Array[(String, Double)]) => {
+      val max = data.map(_._2).max
+      val min = data.map(_._2).min
+      val maxmin = max - min
+      data.map(f => (f._1, 10 * (f._2 - min) / maxmin))
+    }
     
         val result = new HashMap[String, String]
     
@@ -247,24 +248,24 @@ class MiningResource extends AbstractResource {
             (w._1, w._2 * idf(index))
     
           }
-        }).sortWith((x,y)=>x._2>y._2).take(10).map(f=>(f._1,format.format(f._2))).mkString("|")
+        }).sortWith((x,y)=>x._2>y._2).take(hm).map(f=>(f._1,format.format(f._2))).mkString("|")
     
-        val tfidf = normailize(textRank.map { w =>
-          {
-            val index = hashingTf.indexOf(w._1)
+//        val tfidf = normailize(textRank.map { w =>
+//          {
+//            val index = hashingTf.indexOf(w._1)
+//
+//            (w._1, tf(index) * idf(index))
+//
+//          }
+//        }).toMap
     
-            (w._1, tf(index) * idf(index))
-    
-          }
-        }).toMap
-    
-        val andTFIDF = normailize(textRank).map(w => {
-          (w._1, (tfidf(w._1) + w._2)/2)
-    
-        }).sortWith((x,y)=>x._2>y._2).take(10).map(f=>(f._1,format.format(f._2))).mkString("|")
+//        val andTFIDF = normailize(textRank).map(w => {
+//          (w._1, (tfidf(w._1) + w._2)/2)
+//
+//        }).sortWith((x,y)=>x._2>y._2).take(10).map(f=>(f._1,format.format(f._2))).mkString("|")
     
         result.put("withIDF", withIDF)
-        result.put("andTFIDF", andTFIDF)
+//        result.put("andTFIDF", andTFIDF)
     gson.toJson(result)
   }
 
@@ -416,7 +417,7 @@ class MiningResource extends AbstractResource {
     //      predicts(i)=predicts(i)/proSum
     //      i += 1
     //    }
-    //    
+
     val result = for (i <- 0 until labels.length) yield (labels(i), predicts(i))
 
     result.filter(_._2 > 0).sortWith((x, y) => x._2 > y._2).toArray.mkString(",")

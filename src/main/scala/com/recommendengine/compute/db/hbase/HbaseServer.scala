@@ -19,6 +19,8 @@ import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.rdd.RDD.rddToPairRDDFunctions
 import org.apache.hadoop.hbase.client.HBaseAdmin
+import org.apache.hadoop.hbase.client.HConnectionManager
+import org.apache.hadoop.hbase.client.ConnectionFactory
 
 object HbaseServer {
 
@@ -134,7 +136,6 @@ object HbaseServer {
   }
 
 
-  def getTable(tableName: String, conf: Configuration): HTableInterface = new HTable(if (conf == null) defaultconf else conf, tableName)
-
+  def getTable(tableName: String, conf: Configuration): HTableInterface = new HTable(conf,tableName)
 
 }

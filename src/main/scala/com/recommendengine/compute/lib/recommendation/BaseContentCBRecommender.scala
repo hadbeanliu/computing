@@ -13,6 +13,15 @@ import org.apache.spark.ml.feature.HashingTF
 import org.apache.hadoop.hbase.client.Scan
 import java.util.HashMap
 
+
+/**
+  * 基于相同物品之间向量维度的相关度匹配
+  *
+  * weight 每种物品的权重
+  * col 所有用来向量计算的文章
+  * type 所有文章的类型都将转化为 Double
+  *
+  */
 class BaseContentCBRecommender extends ComputingTool {
 
   def read()= {    
@@ -21,10 +30,13 @@ class BaseContentCBRecommender extends ComputingTool {
     val ssCode = getConf.get(Computing.COMPUTING_BITCH_ID)
 
     val input = this.args.get(Computing.INPUT_TABLE)
+    //所有属性的权重，默认为 1
+//    val weight = this.args.get
 
     val table = bizCode + ":" + input
 
     val scan = HbaseServer.buildScan(Array(("behavior", Array(ssCode))), null, null, null)
+
     
     HbaseServer.flatGet(table, scan, sc, op =>
       {

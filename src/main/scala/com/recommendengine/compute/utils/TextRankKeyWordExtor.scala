@@ -15,6 +15,7 @@ class TextRankKeyWordExtor(val segs: ISegment) extends TextRankKeywordsExtractor
   def this() = this(null)
 
   val D = 0.85F
+ 
 
   private[compute] def extractKeyWordWithScore(words: Array[String],topN:Int=10): Array[(String, Float)] = {
 
@@ -46,7 +47,7 @@ class TextRankKeyWordExtor(val segs: ISegment) extends TextRankKeywordsExtractor
 
     val score = new HashMap[String, Float]();
 
-    for (c <- 0 until maxIterateNum) {
+    for (c <- 0 until 20) {
 
       for (entry <- winMap.entrySet()) {
         val key = entry.getKey();

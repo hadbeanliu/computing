@@ -44,7 +44,7 @@
 
 	<property>
 		<name>hbase.zookeeper.quorum</name>
-		<value>192.168.16.118</value>
+		<value>slave2</value>
 	</property>
 	<property>
 		<name>hbase.zookeeper.property.clientPort</name>

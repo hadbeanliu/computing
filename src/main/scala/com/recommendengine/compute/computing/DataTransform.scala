@@ -1,19 +1,12 @@
 package com.recommendengine.compute.computing
 
-
-
-import com.recommendengine.compute.metadata.Computing
-
-import org.apache.spark.sql.SparkSession
-import com.recommendengine.compute.lib.classification.StringSplit
-import com.recommendengine.compute.lib.classification.FeatureSelect
-import com.recommendengine.compute.lib.classification.ClassifyModelBuilder
 import com.recommendengine.compute.conf.ComputingConfiguration
+import com.recommendengine.compute.lib.classification.{ClassifyModelBuilder, DataExport, FeatureSelect, StringSplit}
+import com.recommendengine.compute.metadata.Computing
+import org.apache.spark.sql.SparkSession
 
-object NaiveBayes {
-  
-  
-  
+object DataTransform {
+
   def main(args:Array[String]):Unit={    
     
     val length=args.length
@@ -40,7 +33,7 @@ object NaiveBayes {
 
 //    conf.set("default.model.path", "file:///home/hadoop/result/model")
     
-    val tool=new StringSplit
+    val tool=new DataExport
     tool.setSpark(sc)
     tool.setConf(conf)
 
@@ -51,23 +44,11 @@ object NaiveBayes {
     arg.put("dataSource","hdfs")
     arg.put("dataSource.path","/computing/data")
     arg.put("dataSource.splitRegex","/0003")
-    arg.put("label.filter","本地福建福州厦门宁德莆田龙岩南平三明漳州订阅泉州")
+    arg.put("label.filter","本地福建福州厦门宁德莆田龙岩南平三明漳州订阅")
 
     tool.setArgs(arg)
     
     tool.run
-    
-    val too2=new FeatureSelect
-    too2.setSpark(sc)
-    too2.setConf(conf)
-    too2.setArgs(arg)
-    too2.run()
-    
-    val too3=new ClassifyModelBuilder
-    too3.setSpark(sc)
-    too3.setConf(conf)
-    too3.setArgs(arg)
-    too3.run()
     
   }
   

@@ -2,8 +2,8 @@ package com.recommendengine.compute.api
 
 import java.util.List
 
-import com.recommendengine.compute.api.impl.TaskInfo
 import com.recommendengine.compute.api.model.TaskConfig
+import com.recommendengine.compute.api.impl.Task
 
 trait TaskManager {
   
@@ -14,9 +14,9 @@ trait TaskManager {
   
   def stop(code:String)
   
-  def list(state:String):List[TaskInfo]
+  def list(state:String):List[Task]
  
-  def get(taskId:String):TaskInfo
+  def get(taskId:String):Task
   
   def start(taskId:String)
 } 

@@ -7,7 +7,6 @@ import java.util.concurrent.TimeUnit
 import java.util.logging.Level
 
 import org.apache.spark.SparkConf
-import org.apache.spark.SparkContext
 import org.restlet.Component
 import org.restlet.data.Protocol
 import org.restlet.ext.jaxrs.JaxRsApplication
@@ -17,17 +16,16 @@ import org.slf4j.LoggerFactory
 import com.google.common.collect.Queues
 import com.recommendengine.compute.api.impl.ComputingServerPoolExecutor
 import com.recommendengine.compute.api.impl.ConfManager
-import com.recommendengine.compute.api.impl.MQManager
 import com.recommendengine.compute.api.impl.RAMTaskManager
+import com.recommendengine.compute.api.resource.DBResource
+import com.recommendengine.compute.api.resource.MiningResource
 import com.recommendengine.compute.api.resource.TaskResource
 import com.recommendengine.compute.api.resource.TasteResource
 
 import javax.ws.rs.core.Application
-import com.recommendengine.compute.api.resource.MiningResource
-import com.recommendengine.compute.api.resource.DBResource
-import org.apache.spark.sql.SparkSession
 
 object RecServer {
+
 
   val port: Int = 9999
 
@@ -36,7 +34,7 @@ object RecServer {
   val gobalConf=new SparkConf().setAppName(RecServer.SERVER_NAME).setMaster("local[*]")
   
 //  val sconf = new SparkConf().setAppName(RecServer.SERVER_NAME)
-  gobalConf.set("spark.kryoserializer.buffer.max.mb", "1024m")
+  gobalConf.set("spark.kryoserializer.buffer.max", "1024m")
   gobalConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
   //  sconf.set("spark.driver.extraJavaOptions", "-XX:PermSize=128M -XX:MaxPermSize=256M")
   
@@ -57,8 +55,6 @@ class RecServer(port: Int) extends Application with Server {
 
   @transient var tmr: TaskManager = null
 
-  @transient var mqmr: MQManager = null
-
   @transient var confmr: ConfManager = null
 
   @transient var component: Component = null
@@ -70,7 +66,6 @@ class RecServer(port: Int) extends Application with Server {
 
     tmr = new RAMTaskManager(executor, RecServer.gobalConf)
     confmr = new ConfManager
-    mqmr = new MQManager(confmr)
 
 
     component = new Component();

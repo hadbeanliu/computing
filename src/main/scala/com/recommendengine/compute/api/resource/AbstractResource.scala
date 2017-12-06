@@ -14,8 +14,7 @@ trait AbstractResource {
    
    protected val tmr=server.tmr
    
-   protected val mqmr=server.mqmr
-   
+
    def throwBadRequestException(msg:String)=throw new WebApplicationException(Response.status(Status.BAD_REQUEST).entity(msg).build())
    
 }

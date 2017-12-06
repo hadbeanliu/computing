@@ -58,4 +58,10 @@ object DateUtil {
 
   }
 
+  def main(args:Array[String]):Unit={
+
+    println("abc")
+
+  }
+
 }

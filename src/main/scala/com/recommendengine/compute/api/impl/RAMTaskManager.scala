@@ -38,34 +38,10 @@ class RAMTaskManager(val executor: ComputingServerPoolExecutor, val sconf: Spark
     conf.set(Computing.COMPUTING_ID, bizCode)
     conf.set(Computing.COMPUTING_BITCH_ID, ssCode)
     conf.set(Computing.COMPUTING_CONF_ID, task.configId)
-    //      conf.set(Computing.INPUT_TABLE, alg.input)
-    //      conf.set(Computing.OUTPUT_TABLE ,alg.output)
-    //      create table and namespace for this task 
-    beforeCreateTask(conf)
 
-    //      val tool = createTools(alg, conf)
+//    beforeCreateTask(conf)
 
-    //      if (alg.args != null){
-    //        println(alg.args)
-    //        val paramMap:java.util.List[java.util.Map[String,String]]=new Gson().fromJson(alg.args, new TypeToken[java.util.List[java.util.Map[String,String]]](){}.getType)
-    //        
-    //        val args=new HashMap[String,Any]()
-    //        
-    //        val size=paramMap.size()
-    //        for(i<-0 until size){
-    //            val param=paramMap.get(i)
-    //            args.put(param.get("code"), param.get("val"))
-    //            println(param.get("code"), param.get("val"))
-    //        }
-    //        println(alg.input,alg.output,alg.mainClass)
-    //        args.put(Computing.INPUT_TABLE, alg.input)
-    //        args.put(Computing.OUTPUT_TABLE, alg.output)
-    //        tool.setArgs(args)
-    //        
-    //      }
-    
-   
-    val worker = new TaskWorker(task, conf, sconf)
+    val worker = new TaskWorker(task, conf)
 
     this.executor.execute(worker)
     this.executor.purge()
@@ -79,8 +55,7 @@ class RAMTaskManager(val executor: ComputingServerPoolExecutor, val sconf: Spark
       throw new IllegalArgumentException(" 业务代码不能为空");
     val tableName = conf.get("preferred.table.name");
 
-    val tables: java.util.Map[String, HTableDescriptor] = FileMappingToHbase
-      .readMappingFile(conf.get("hbase.default.mapping.file"))
+    val tables: java.util.Map[String, HTableDescriptor] = FileMappingToHbase .readMappingFile(conf.get("hbase.default.mapping.file"))
 
     val values = tables.values().iterator()
 
@@ -95,10 +70,10 @@ class RAMTaskManager(val executor: ComputingServerPoolExecutor, val sconf: Spark
 
   private def createTools(alg: Algorithm, conf: Configuration): ComputingTool = {
 
-    if (StringUtils.isEmpty(alg.mainClass))
+    if (StringUtils.isEmpty(alg.clazz))
       throw new IllegalArgumentException("Algorithm's main class can not be null")
 
-    val clazz = Class.forName(alg.mainClass)
+    val clazz = Class.forName(alg.clazz)
 
     val tool = ReflectUtil.newInstance(clazz).asInstanceOf[ComputingTool]
 
@@ -117,7 +92,7 @@ class RAMTaskManager(val executor: ComputingServerPoolExecutor, val sconf: Spark
 
   }
 
-  override def list(state: String): java.util.List[TaskInfo] = {
+  override def list(state: String): java.util.List[Task] = {
     if (state == null || state == "ALL")
       executor.getAllTasks()
     else if (state == "RUNNING" || state == "IDLE")
@@ -126,7 +101,7 @@ class RAMTaskManager(val executor: ComputingServerPoolExecutor, val sconf: Spark
 
   }
 
-  override def get(taskId: String): TaskInfo = {
+  override def get(taskId: String): Task = {
     val infos = executor.getAllTasks().iterator()
     while (infos.hasNext()) {
       val info = infos.next()

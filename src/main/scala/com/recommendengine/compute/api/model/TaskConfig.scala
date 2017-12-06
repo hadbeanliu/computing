@@ -8,5 +8,5 @@ case class TaskConfig(var configId:String,bizCode:String,ssCode:String,algorithm
 
 case class TaskJob(args:Map[String,Object],bizCode:String,ssCode:String,tsmp:Long)
 
-case class Algorithm(code:String,input:String,output:String,args:String,mainClass:String,jarPath:String)
+case class Algorithm(defautArgs:java.util.Map[String,String],args:java.util.Map[String,String],clazz:String,jar:String,algCode:String)
 

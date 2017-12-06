@@ -26,7 +26,6 @@ import com.recommendengine.compute.utils.StringUtils
 
 class ALSRecommender extends ComputingTool with Readable with Writable {
 
-  private val LOG = LoggerFactory.getLogger(classOf[ALSRecommender])
   private type inputType = RDD[Rating]
   private val sdf: SimpleDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss")
   private val result=new java.util.HashMap[String,Any]()
@@ -52,7 +51,7 @@ class ALSRecommender extends ComputingTool with Readable with Writable {
       result =>
         {
           val user = Bytes.toString(result.getRow)
-          val intUser = StringUtils.getNonNegatived(user.##(), Int.MaxValue)
+          val intUser = StringUtils.getNonNegatived(user.hashCode, Int.MaxValue)
           val cell = result.rawCells()(0)
 
           val itemWithValue = Bytes.toString(CellUtil.cloneValue(cell)).split(Computing.KEY_VALUE_SPLIT_SIGN)
@@ -60,7 +59,7 @@ class ALSRecommender extends ComputingTool with Readable with Writable {
 
             val item = kv.split(Computing.KEY_VALUE_SPLIT_SIGN)(0)
             val value = kv.split(Computing.KEY_VALUE_SPLIT_SIGN)(1)
-            val intItem = StringUtils.getNonNegatived(item.##(), Int.MaxValue)
+            val intItem = StringUtils.getNonNegatived(item.hashCode(), Int.MaxValue)
 
             (user, Rating(intUser, intItem, value.toDouble), item)
           }

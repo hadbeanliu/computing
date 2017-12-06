@@ -11,6 +11,7 @@ import org.apache.commons.collections.CollectionUtils
 
 import com.google.common.collect.Queues
 
+
 class ComputingServerPoolExecutor(corePoolSize:Int,maxPoolSize:Int,keepAliveTime:Long,unit:TimeUnit,queue:BlockingQueue[Runnable]) extends
                 ThreadPoolExecutor(corePoolSize:Int,maxPoolSize:Int,keepAliveTime:Long,unit:TimeUnit,queue:BlockingQueue[Runnable]){
   
@@ -36,7 +37,7 @@ class ComputingServerPoolExecutor(corePoolSize:Int,maxPoolSize:Int,keepAliveTime
       }
       
       
-      def getAllTasks():java.util.List[TaskInfo]=CollectionUtils.union(getRunningTasks() , getHistoryTasks()).asInstanceOf[java.util.List[TaskInfo]]
+      def getAllTasks():java.util.List[Task]=CollectionUtils.union(getRunningTasks() , getHistoryTasks()).asInstanceOf[java.util.List[Task]]
         
       
       def getRunningTasks()=getTaskInfo(this.runningTask)
@@ -46,10 +47,10 @@ class ComputingServerPoolExecutor(corePoolSize:Int,maxPoolSize:Int,keepAliveTime
       
       
       
-      private def  getTaskInfo(tasks:Collection[TaskWorker]): java.util.List[TaskInfo]={
+      private def  getTaskInfo(tasks:Collection[TaskWorker]): java.util.List[Task]={
         
         val it=tasks.iterator();
-        val list=new LinkedList[TaskInfo]
+        val list=new LinkedList[Task]
         while(it.hasNext()){
           list.add(it.next().getInfo)
         }

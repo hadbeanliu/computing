@@ -1,10 +1,11 @@
 package com.test
 
+import java.util
 import java.util.ArrayList
+
 import org.apache.hadoop.hbase.mapreduce.HFileOutputFormat2
 
 import scala.util.Random
-
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.HBaseConfiguration
 import org.apache.hadoop.hbase.HColumnDescriptor
@@ -19,6 +20,7 @@ import org.apache.hadoop.hbase.filter.SingleColumnValueFilter
 import org.apache.hadoop.hbase.filter.CompareFilter.CompareOp
 import org.apache.hadoop.hbase.client.Delete
 import java.util.HashMap
+
 import org.apache.spark.sql.SparkSession
 import org.apache.hadoop.hbase.mapreduce.TableInputFormat
 import com.recommendengine.compute.db.hbase.HbaseServer
@@ -27,69 +29,46 @@ import org.apache.spark.sql.Row
 import org.apache.spark.ml.feature.StringIndexer
 import org.apache.spark.ml.feature.StringIndexerModel
 import com.recommendengine.compute.utils.HtmlParser
+import org.apache.hadoop.hbase.client.ConnectionFactory
+import org.apache.hadoop.hbase.TableName
+import org.apache.hadoop.hbase.client.Append
+import org.apache.hadoop.hbase.client.Get
+import org.apache.hadoop.hbase.client.Increment
+import org.apache.hadoop.hbase.NamespaceDescriptor
+
+import scala.collection.mutable
 
 object HbaseTest {
-
+/*
+ * 982918480999146
+982918480998920
+982918480998718
+982918580993899
+982918580993888
+982918580993914
+982918480999263
+982918580993903
+ */
   def main(args: Array[String]): Unit = {
-    //        val conn=HConnectionManager.createConnection(HBaseConfiguration.create())
-    //        
-    //        val table=conn.getTable("headlines:item_meta_table".getBytes)
 
-    //        val ss=SparkSession.builder().config("master", "local[*]").appName("test").getOrCreate()
 
-    //        val data = ss.sparkContext.wholeTextFiles("file:///home/hadoop/result/train")
-    countBySelect
-    //          countBySelect()
-    //          HbaseServer.clearTable("headlines:item_meta_table")
-    //    
-    //    val delete=new Delete("2017011619000064".getBytes)
-    ////    delete.deleteFamily("kw".getBytes)
-    //    table.delete(delete)
+      val conf =HBaseConfiguration.create()
+      val conn=ConnectionFactory.createConnection(conf)
 
-  }
-
-  def countBySelect() {
-    val conn = HConnectionManager.createConnection(HBaseConfiguration.create())
-
-    val scan = new Scan
-    scan.addColumn("f".getBytes, "lb".getBytes)
-
-    val table = conn.getTable("headlines:item_meta_table")
-    val rscan = table.getScanner(scan).iterator()
-    var i = 0
-    val delete = new ArrayList[Delete]()
-
-    val map = new HashMap[String, Int]()
-    while (rscan.hasNext()) {
-      val rs = rscan.next()
-      //      delete.add(new Delete(rs.getRow))
-      val ca = new String(rs.getValue("f".getBytes, "lb".getBytes))
-      if (map.containsKey(ca))
-        map.put(ca, map.get(ca) + 1)
-      else map.put(ca, 1)
-      if (ca == "医疗")
-        delete.add(new Delete(rs.getRow))
-      i = i + 1
-      //      for(cell<-rs.rawCells())
-    }
-    val kv = map.entrySet().iterator()
-    while (kv.hasNext()) {
-      val next = kv.next()
-      println(next.getKey + ":" + next.getValue)
-    }
-    println("the number article be deleted:" + delete.size())
-    table.delete(delete)
-    //    this.putUserMsg()
-    //    delete("headlines", conf)
-    //    val table=conn.getTable("headlines:tmp_data_table")
-
-    //    val scan = new Scan()
-    //    scan.addFamily("result".getBytes)
-    //
-    //    val filter = new RowFilter(CompareOp.EQUAL, new SubstringComparator("textClassfy_split"))
-    //    scan.setFilter(filter)
-    //    createTable("headlines:tmp_data_table", null)
-
+      val table = conn.getTable(TableName.valueOf("headlines:item_meta_table"))
+      val scan= new Scan()
+      scan.addColumn("p".getBytes(),"cnt".getBytes())
+      val rs=table.getScanner(scan).iterator()
+      val map=new mutable.HashMap[Int,Int]()
+      while(rs.hasNext){
+        val r=rs.next
+        if(!r.isEmpty){
+          val k:Int=Bytes.toString(r.getValue("p".getBytes(),"cnt".getBytes())).length/10
+          map.put(k,map.getOrElse(k,0)+1)
+        }
+      }
+    map.foreach(x=>println(x._1,x._2))
+//      admin.createNamespace(NamespaceDescriptor.create("govheadlines").build())
   }
 
   def clearColumnWithRegex() {

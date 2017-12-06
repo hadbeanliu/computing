@@ -6,7 +6,6 @@ import java.util.Map
 
 trait SparkJob{
   
-  
   def setArgs(args:java.util.Map[String,Any])
   
   def setSpark(sc:SparkContext)

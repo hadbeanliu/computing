@@ -2,9 +2,9 @@ package com.recommendengine.compute.lib.classification
 
 import java.util.HashMap
 
+import com.google.gson.Gson
 
 import scala.reflect.ClassTag
-
 import org.apache.hadoop.fs.FileSystem
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.hbase.client.Put
@@ -16,7 +16,6 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.rdd.RDD.rddToPairRDDFunctions
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions.udf
-
 import com.recommendengine.compute.db.hbase.HbaseServer
 import com.recommendengine.compute.lib.recommendation.ComputingTool
 import com.recommendengine.compute.metadata.Computing
@@ -26,7 +25,7 @@ import org.apache.spark.ml.feature.StringIndexer
 import org.apache.spark.ml.feature.StringIndexerModel
 import org.apache.spark.ml.feature.IDFModel
 import org.apache.spark.ml.feature.IndexToString
-import org.apache.spark.sql.functions.{udf}
+import org.apache.spark.sql.functions.udf
 import org.apache.spark.ml.linalg.SparseVector
 import org.apache.spark.ml.linalg.Vector
 import org.apache.spark.ml.linalg.Vectors
@@ -72,11 +71,12 @@ class FeatureSelect extends ComputingTool{
   def run = {
     
     val minDocFreq=if(this.args.get("minDocFreq")==null) 5 else this.args.get("minDocFreq").asInstanceOf[String].toInt
-    
+    LOG.info("开始任务："+ new Gson().toJson(this.args))
     val result = new HashMap[String, Any]
     
     val ss=SparkSession.builder().getOrCreate()
-    
+    LOG.info("开始转换为TF")
+
     val hashingTf=new HashingTF
     hashingTf.setInputCol("words").setOutputCol("rowFeatures")
     
@@ -97,19 +97,21 @@ class FeatureSelect extends ComputingTool{
 //    val tf=tf1.withColumn("rowFeatures", transform(tf1("rowFeatures")))
         
     val idf=new IDF().setInputCol("rowFeatures").setOutputCol("features").setMinDocFreq(minDocFreq)
-   
+    LOG.info("开始训练 IDFModel")
     val idfModel=idf.fit(tf)
-    
-    
+
+    LOG.info("开始转换为 TFIDF")
     val tfidf=idfModel.transform(tf)
     
     
             
     val bsCode=getConf.get(Computing.COMPUTING_ID) + "_"+getConf.get(Computing.COMPUTING_BITCH_ID)
 //    
-//    
+//
+
     val idfPath=getConf.get("default.model.path")+"/"+bsCode
-//    
+//
+    LOG.info("将模型保存到:"+idfPath+IDFModel.getClass.getSimpleName)
     idfModel.write.overwrite().save(idfPath+"/"+IDFModel.getClass.getSimpleName)
 //    
     val stringIndex=new StringIndexer().setInputCol("label").setOutputCol("labelIndex").fit(tfidf)
@@ -127,9 +129,10 @@ class FeatureSelect extends ComputingTool{
 //   
     val size=finaltfIdf.select("features").head().getAs[Vector](0).size
 
-    
-  
-    
+
+
+    LOG.info("任务执行完毕，将数据导入 table.features，准备下一个任务")
+
     finaltfIdf.createOrReplaceTempView("features")
     
     result

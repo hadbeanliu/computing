@@ -37,7 +37,7 @@ object TextSplit extends Serializable {
   private val dic = DictionaryFactory.createSingletonDictionary(config)
 
   def process(txt: String): Array[String] = {
-    val jcseg = SegmentFactory.createJcseg(JcsegTaskConfig.COMPLEX_MODE, config, dic)
+    val jcseg = SegmentFactory.createJcseg(JcsegTaskConfig.NLP_MODE, config, dic)
 
     val result = new StringBuffer()
 
@@ -83,11 +83,11 @@ object TextSplit extends Serializable {
 
   def main(args: Array[String]): Unit = {
     var sb = new StringBuffer()
-    sb.append("上海移居香港的高级裁缝，投资1.2亿港元在中环开设首间上海滩专门店")
+    sb.append("上个月《建军大业》曝光定妆照时，有网友犀利评论说看着某些演员")
     ////    Source.fromFile("/home/hadoop/train/test").getLines().foreach { x => sb.append(x).append("\n") }
     //    val arr = Array(1, 2, 3, 4)
     //    println(arr.length)x
-    process(sb.toString()).foreach { x => println }
+    process(sb.toString()).foreach { println }
     
 //    val word=dic.get(ILexicon.CJK_WORD, "北京")
 //    
